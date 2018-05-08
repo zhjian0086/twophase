@@ -181,7 +181,7 @@ event loadfiles(i = 0)
 		;
 		timestr = clock();
 		printf("==========----------==========----------==========\r\n");
-		printf("bview image producing.\r\n");
+		printf("time: %.4f ****** bview image producing.\r\n");
 		char nameBview[500], textBview[500];
 		;
 		foreach ()
