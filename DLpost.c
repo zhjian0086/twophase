@@ -1,7 +1,7 @@
 #include "constants.h"
 
-#define BVIEW_YESNO		'n'
-#define TECPLOT_YESNO	'y'
+#define BVIEW_YESNO		'y'
+#define TECPLOT_YESNO	'n'
 #define JETROOT_YESNO	'n'
 
 #if BVIEW_YESNO == 'y'
