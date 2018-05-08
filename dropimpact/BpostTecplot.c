@@ -149,7 +149,7 @@ event loadfiles(i = 0)
 		;
 		timestr = clock();
 		printf("==========----------==========----------==========\r\n");
-		printf("time: %.4f ****** tecplot interface (f1, f2).\r\n");
+		printf("time: %.4f ****** tecplot interface (f1, f2).\r\n", tc);
 		sprintf(nameTecplotF1, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTF1, tc);
 		sprintf(nameTecplotF2, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTF2, tc);
 		output_tecplot2D_Intrfc(nameTecplotF1, f, tc, angle);
@@ -158,7 +158,7 @@ event loadfiles(i = 0)
 		printf("==========----------==========----------==========\r\n");
 		;
 		printf("==========----------==========----------==========\r\n");
-		printf("time: %.4f ****** tecplot nodal (iso-lines-enable).\r\n");
+		printf("time: %.4f ****** tecplot nodal (iso-lines-enable).\r\n", tc);
 		sprintf(nameTecplotND, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTND, tc);
 		sprintf(nameTecplotBinND, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTBINND, tc);
 		onlyf[0] = 'y';
@@ -171,7 +171,7 @@ event loadfiles(i = 0)
 		printf("==========----------==========----------==========\r\n");
 		;
 		printf("==========----------==========----------==========\r\n");
-		printf("time: %.4f ****** tecplot cell center (numerical values).\r\n");
+		printf("time: %.4f ****** tecplot cell center (numerical values).\r\n", tc);
 		sprintf(nameTecplotCC, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTCC, tc);
 		sprintf(nameTecplotBinCC, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTBINCC, tc);
 		onlyf[0] = 'y';
@@ -184,7 +184,7 @@ event loadfiles(i = 0)
 		printf("==========----------==========----------==========\r\n");
 		;
 		printf("==========----------==========----------==========\r\n");
-		printf("time: %.4f ****** tecplot ND, ASCII to BINARY, one file -> one file\r\n");
+		printf("time: %.4f ****** tecplot ND, ASCII to BINARY, one file -> one file\r\n", tc);
 		strcpy(namesTecplot[0], nameTecplotND);
 		strcpy(namesTecplot[1], nameTecplotF1);
 		strcpy(namesTecplot[2], nameTecplotF2);
@@ -193,7 +193,7 @@ event loadfiles(i = 0)
 		printf("==========----------==========----------==========\r\n");
 		;
 		printf("==========----------==========----------==========\r\n");
-		printf("time: %.4f ****** tecplot CC, ASCII to BINARY, one file -> one file\r\n");
+		printf("time: %.4f ****** tecplot CC, ASCII to BINARY, one file -> one file\r\n", tc);
 		strcpy(namesTecplot[0], nameTecplotCC);
 		strcpy(namesTecplot[1], nameTecplotF1);
 		strcpy(namesTecplot[2], nameTecplotF2);
