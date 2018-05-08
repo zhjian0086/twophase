@@ -1,7 +1,5 @@
 #include "constants.h"
 
-//toto
-
 #define BVIEWFOLDER		"bviewfiles"
 double bview_time_1file, bview_time_total;
 double SCALE = 1.0, YPOSITION = 0.50, NOPIXELS = 1000;
