@@ -1,11 +1,13 @@
 #include "constants.h"
 
-#define BVIEW_YESNO		'n'
-#define TECPLOT_YESNO	'n'
-#define JETROOT_YESNO	'y'
-
 #include "jetrecognition.h"
 double jetroot_time_1file, jetroot_time_total;
+
+// ./DLpost tb0.05 ts0.01 te0.06
+// means:
+// time-begin: 0.05
+// time-step: 0.01
+// time-end: 0.06
 
 #if dimension == 3
 #include "lambda2.h"

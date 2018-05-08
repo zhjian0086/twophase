@@ -6,6 +6,12 @@ double tecplot_time_1file, tecplot_time_total;
 
 #include "tecplot.h"
 
+// ./DLpost tb0.05 ts0.01 te0.06
+// means:
+// time-begin: 0.05
+// time-step: 0.01
+// time-end: 0.06
+
 #if dimension == 3
 #include "lambda2.h"
 #endif
