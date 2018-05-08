@@ -1,10 +1,29 @@
 #include "constants.h"
 
-#define TECPLOTFOLDER		"tecplotfiles"
-#define NAMEMACRO       	"macro.mcr"
-double tecplot_time_1file, tecplot_time_total;
+#define BVIEW_YESNO		'y'
+#define TECPLOT_YESNO	'n'
+#define JETROOT_YESNO	'n'
 
-#include "tecplot.h"
+#define BVIEWFOLDER		"bviewfiles"
+double bview_time_1file, bview_time_total;
+double SCALE = 1.0, YPOSITION = 0.50, NOPIXELS = 1000;
+
+#include "view.h"
+
+// install bview: http://basilisk.fr/src/gl/INSTALL
+// qcc -Wall -O2 DLpost.c -o DLpost -L$BASILISK/gl -lglutils -lfb_osmesa -lGLU -lOSMesa -lm
+// qcc -Wall -O2 DLpost.c -o DLpost -L$BASILISK/gl -lglutils -lfb_glx -lGLU -lGLEW -lGL -lX11
+
+// ./DLpost tb0.05 ts0.01 te0.06 s20.0 y0.6 p1000
+// means:
+// time-begin: 0.05
+// time-step: 0.01
+// time-end: 0.06
+// scale: 20.0
+// y position from the bottom 0.6 (60 %)
+// number of pixels in y-direction: 1000 (in the x direction is twice)
+
+// ffmpeg -framerate 1 -i out-bview-omega-%06d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p out-bview-omega-video.mp4
 
 #if dimension == 3
 #include "lambda2.h"
@@ -20,8 +39,8 @@ void readfromargPOST(int argc, char **argv);
 int main(int argc, char **argv)
 {
 	simulation_str_time = clock();
-	tecplot_time_1file = 0.0;
-	tecplot_time_total = 0.0;
+	bview_time_1file = 0.0;
+	bview_time_total = 0.0;
 	total_time_1file = 0.0;
 	total_time_total = 0.0;
 	readfromargPOST(argc, argv);
@@ -53,6 +72,33 @@ void readfromargPOST(int argc, char **argv)
 	{
 		switch (argv[i][0])
 		{
+		case 's':
+		case 'S':
+		{
+			for (j = 1; j < (int)strlen(argv[i]); j++)
+				tmp[j - 1] = argv[i][j];
+			tmp[j - 1] = '\0';
+			SCALE = atof(tmp);
+			break;
+		}
+		case 'y':
+		case 'Y':
+		{
+			for (j = 1; j < (int)strlen(argv[i]); j++)
+				tmp[j - 1] = argv[i][j];
+			tmp[j - 1] = '\0';
+			YPOSITION = atof(tmp);
+			break;
+		}
+		case 'p':
+		case 'P':
+		{
+			for (j = 1; j < (int)strlen(argv[i]); j++)
+				tmp[j - 1] = argv[i][j];
+			tmp[j - 1] = '\0';
+			NOPIXELS = (int)atof(tmp);
+			break;
+		}
 		case 't':
 		case 'T':
 		{
@@ -111,13 +157,10 @@ event loadfiles(i = 0)
 	vector vn[];
 	clock_t timestr, timeend, timestrtotal, timeendtotal;
 	;
-	char TPThis1[500], TPTotal[500];
-	const double angle = 90.0;
-	char onlyf[500], nameTecplotND[500], nameTecplotCC[500], nameTecplotF1[500], nameTecplotF2[500];
-	char namesTecplot[10][500], nameTecplotBinND[500], nameTecplotBinCC[500];
-	strcpy(TPThis1, "mkdir ");
-	strcat(TPThis1, TECPLOTFOLDER);
-	system(TPThis1);
+	char BVThis1[500], BVTotal[500];
+	strcpy(BVThis1, "mkdir ");
+	strcat(BVThis1, BVIEWFOLDER);
+	system(BVThis1);
 	;
 	timestrtotal = clock();
 	for (tc = Time_BGN, iloop = 0; tc <= Time_END + Time_STP * 0.01; tc += Time_STP, iloop++)
@@ -139,70 +182,76 @@ event loadfiles(i = 0)
 		printf("time: %.4f ****** cell number: %d\r\n", tc, cellnumber);
 		printf("==========----------==========----------==========\r\n");
 		;
-		// tecplot output
+		// bview output
 		;
 		timestr = clock();
 		printf("==========----------==========----------==========\r\n");
-		printf("tecplot interface (f1, f2).\r\n");
-		sprintf(nameTecplotF1, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTF1, tc);
-		sprintf(nameTecplotF2, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTF2, tc);
-		output_tecplot2D_Intrfc(nameTecplotF1, f, tc, angle);
-		output_tecplot2D_Intrfc(nameTecplotF2, fdrop, tc, angle);
+		printf("bview image producing.\r\n");
+		char nameBview[500], textBview[500];
+		;
+		foreach ()
+		{
+			varLeft[] = level;
+			varRight[] = omega[] * f[];
+		}
+		boundary({varLeft});
+		boundary({varRight});
+		sprintf(nameBview, "%s/out-bview-level-vorticity-%09d.png", BVIEWFOLDER, (int)(round(fabs(tc) * 1000000)));
+		view(width = 2 * NOPIXELS, height = NOPIXELS, quat = {0, 0, -0.707, 0.707}, sx = SCALE, sy = SCALE, ty = -1.0 * SCALE * YPOSITION);
+		clear();
+		draw_vof("f", lw = 5);
+		draw_vof("fdrop", lw = 5);
+		squares("varLeft");
+		box(notics = true);
+		cells(lw = 1); // showing the grid
+		mirror({-1})
+		{
+			draw_vof("f", lw = 5);
+			draw_vof("fdrop", lw = 5);
+			squares("varRight", linear = true, min = -10.0, max = 10.0); //
+			box(notics = true);
+		}
+		sprintf(textBview, "L: grid, R: vorticity, time: %.4f", tc);
+		draw_string(textBview, lw = 5, size = 100);
+		save(nameBview);
+		;
+		foreach ()
+		{
+			varLeft[] = 1.0 - f[] + 2.0 * fdrop[] < 0.0 ? 0.0 : (1.0 - f[] + 2.0 * fdrop[] > 2.0 ? 2.0 : 1.0 - f[] + 2.0 * fdrop[]);
+			//varLeft[] = p[] * f[];
+			varRight[] = pressure[] * f[];
+		}
+		boundary({varLeft});
+		boundary({varRight});
+		sprintf(nameBview, "%s/out-bview-fraction-pressure-%09d.png", BVIEWFOLDER, (int)(round(fabs(tc) * 1000000)));
+		view(width = 2 * NOPIXELS, height = NOPIXELS, quat = {0, 0, -0.707, 0.707}, sx = SCALE, sy = SCALE, ty = -1.0 * SCALE * YPOSITION);
+		clear();
+		draw_vof("f", lw = 5);
+		draw_vof("fdrop", lw = 5);
+		squares("varLeft", linear = true, min = 0.0, max = 2.0);
+		box(notics = true);
+//		cells(lw = 1); // showing the grid
+		mirror({-1})
+		{
+			draw_vof("f", lw = 5);
+			draw_vof("fdrop", lw = 5);
+			squares("varRight", linear = true, min = 0.0, max = 5.0); //
+			box(notics = true);
+		}
+		sprintf(textBview, "L: fraction, R: pressure, time: %.4f", tc);
+		draw_string(textBview, lw = 5, size = 100);
+		save(nameBview);
+		;
 		printf("done!\r\n");
 		printf("==========----------==========----------==========\r\n");
-		;
-		printf("==========----------==========----------==========\r\n");
-		printf("tecplot nodal (iso-lines-enable).\r\n");
-		sprintf(nameTecplotND, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTND, tc);
-		sprintf(nameTecplotBinND, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTBINND, tc);
-		onlyf[0] = 'y';
-		onlyf[1] = 'y';
-		onlyf[2] = 'y';
-		onlyf[3] = 'y';
-		onlyf[4] = 'y';
-		output_tecplot2D_nodal(nameTecplotND, tc, {fdrop, u.x, u.y, omega, pressure}, onlyf, angle);
-		printf("done!\r\n");
-		printf("==========----------==========----------==========\r\n");
-		;
-		printf("==========----------==========----------==========\r\n");
-		printf("tecplot cell center (numerical values).\r\n");
-		sprintf(nameTecplotCC, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTCC, tc);
-		sprintf(nameTecplotBinCC, "%s/%s-%.4f.plt", TECPLOTFOLDER, NAMETECPLOTBINCC, tc);
-		onlyf[0] = 'y';
-		onlyf[1] = 'y';
-		onlyf[2] = 'y';
-		onlyf[3] = 'y';
-		onlyf[4] = 'y';
-		output_tecplot2D_cellcenter(nameTecplotCC, tc, {fdrop, u.x, u.y, omega, pressure}, onlyf, angle);
-		printf("done!\r\n");
-		printf("==========----------==========----------==========\r\n");
-		;
-		printf("==========----------==========----------==========\r\n");
-		printf("tecplot ND, ASCII to BINARY, one file -> one file\r\n");
-		strcpy(namesTecplot[0], nameTecplotND);
-		strcpy(namesTecplot[1], nameTecplotF1);
-		strcpy(namesTecplot[2], nameTecplotF2);
-		macrotecplotonefile(namesTecplot, 3, nameTecplotBinND);
-		printf("done!\r\n");
-		printf("==========----------==========----------==========\r\n");
-		;
-		printf("==========----------==========----------==========\r\n");
-		printf("tecplot CC, ASCII to BINARY, one file -> one file\r\n");
-		strcpy(namesTecplot[0], nameTecplotCC);
-		strcpy(namesTecplot[1], nameTecplotF1);
-		strcpy(namesTecplot[2], nameTecplotF2);
-		macrotecplotonefile(namesTecplot, 3, nameTecplotBinCC);
-		printf("done!\r\n");
-		printf("==========----------==========----------==========\r\n");
-		;
 		timeend = clock();
-		tecplot_time_1file += (double)(timeend - timestr) / CLOCKS_PER_SEC;
+		bview_time_1file += (double)(timeend - timestr) / CLOCKS_PER_SEC;
 		;
 		// calculating total time
 		;
-		tecplot_time_total += tecplot_time_1file;
-		timecalculation(tecplot_time_1file, TPThis1);
-		timecalculation(tecplot_time_total, TPTotal);
+		bview_time_total += bview_time_1file;
+		timecalculation(bview_time_1file, BVThis1);
+		timecalculation(bview_time_total, BVTotal);
 		;
 		timeendtotal = clock();
 		total_time_1file += (double)(timeendtotal - timestrtotal) / CLOCKS_PER_SEC;
@@ -217,11 +266,11 @@ event loadfiles(i = 0)
 		;
 		printf("==========----------==========----------==========\r\n");
 		printf("LAST FILE DURATIONS:\r\n");
-		printf("tecplot duration: %s\r\n", TPThis1);
+		printf("bview duration: %s\r\n", BVThis1);
 		printf("total duration: %s\r\n", TMThis1);
 		printf("ALL FILES DURATIONS UNTIL NOW:\r\n");
-		printf("tecplot total duration: %s\r\n", TPThis1);
-		tecplot_time_1file = 0.0;
+		printf("bview total duration: %s\r\n", BVThis1);
+		bview_time_1file = 0.0;
 		printf("total duration: %s\r\n", TMTotal);
 		total_time_1file = 0.0;
 		printf("==========----------==========----------==========\r\n");
@@ -229,14 +278,6 @@ event loadfiles(i = 0)
 		printf("done with t = %.4f\r\n", tc);
 		printf("==========----------==========----------==========\r\n");
 	}
-// #if TECPLOT_YESNO == 'y'
-// 	printf("==========----------==========----------==========\r\n");
-//     printf("convert all binary files to one binary file.\r\nTime_BGN-%f__Time_STP-%f__Time_END-%f\r\n", Time_BGN, Time_STP, Time_END);
-// 	macrotecplotallfiles(NAMETECPLOTBINND, Time_BGN, Time_STP, Time_END);
-// 	macrotecplotallfiles(NAMETECPLOTBINCC, Time_BGN, Time_STP, Time_END);
-// 	printf("done!\r\n");
-// 	printf("==========----------==========----------==========\r\n");
-// #endif
 }
 
 event end(i = 0)
