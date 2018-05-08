@@ -235,14 +235,20 @@ event loadfiles(i = 0)
 		printf("done with t = %.4f\r\n", tc);
 		printf("==========----------==========----------==========\r\n");
 	}
-// #if TECPLOT_YESNO == 'y'
+    printf("==========----------==========----------==========\r\n");
+    printf("remove all the ascii\r\n");
+	strcpy(TPThis1, "rm ");
+	strcat(TPThis1, TECPLOTFOLDER);
+	strcat(TPThis1, "/out-tecplot*");
+	system(TPThis1);
+    printf("done.\r\n");
+    printf("==========----------==========----------==========\r\n");
 // 	printf("==========----------==========----------==========\r\n");
 //     printf("convert all binary files to one binary file.\r\nTime_BGN-%f__Time_STP-%f__Time_END-%f\r\n", Time_BGN, Time_STP, Time_END);
 // 	macrotecplotallfiles(NAMETECPLOTBINND, Time_BGN, Time_STP, Time_END);
 // 	macrotecplotallfiles(NAMETECPLOTBINCC, Time_BGN, Time_STP, Time_END);
 // 	printf("done!\r\n");
 // 	printf("==========----------==========----------==========\r\n");
-// #endif
 }
 
 event end(i = 0)
