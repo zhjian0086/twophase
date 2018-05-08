@@ -7,16 +7,15 @@ double SCALE = 1.0, YPOSITION = 0.50, NOPIXELS = 1000;
 #include "view.h"
 
 // install bview: http://basilisk.fr/src/gl/INSTALL
-// qcc -Wall -O2 DLpost.c -o DLpost -L$BASILISK/gl -lglutils -lfb_osmesa -lGLU -lOSMesa -lm
-// qcc -Wall -O2 DLpost.c -o DLpost -L$BASILISK/gl -lglutils -lfb_glx -lGLU -lGLEW -lGL -lX11
+// qcc -Wall -O2 BpostBview.c -o BpostBview -L$BASILISK/gl -lglutils -lfb_osmesa -lGLU -lOSMesa -lm
 
-// ./DLpost tb0.05 ts0.01 te0.06 s20.0 y0.6 p1000
+// ./BpostBview tb0.1 ts0.01 te0.2 s10.0 y0.2 p1000
 // means:
-// time-begin: 0.05
+// time-begin: 0.1
 // time-step: 0.01
-// time-end: 0.06
-// scale: 20.0
-// y position from the bottom 0.6 (60 %)
+// time-end: 0.2
+// scale: 10.0
+// y position from the bottom 0.2 (20 %)
 // number of pixels in y-direction: 1000 (in the x direction is twice)
 
 // ffmpeg -framerate 1 -i out-bview-omega-%06d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p out-bview-omega-video.mp4
