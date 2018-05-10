@@ -3,9 +3,14 @@
 #include "two-phase.h"
 #include "tension.h"
 #include "tag.h"
-//#include "reduced.h"
 
-int LevelMax = 13;
+#define REDUCE_YES_NO 'n'
+
+#if REDUCE_YES_NO == 'y'
+    #include "reduced.h"
+#endif
+
+const int LevelMax = 13;
 const double R_G = -0.50;
 
 int main()
@@ -19,23 +24,27 @@ int main()
     mu1 = 1e-1;
     mu2 = 1e-3;
     ;
-    // G.x = R_G;
-    // Z.x = 0.0;
+#if REDUCE_YES_NO == 'y'
+    G.x = R_G;
+    Z.x = 0.0;
+#endif
     ;
     run();
 }
 
+#if REDUCE_YES_NO == 'n'
 event acceleration(i++)
 {
     face vector av = a;
     foreach_face(x)
         av.x[] += R_G;
 }
+#endif
 
 event init(t = 0)
 {
-    double x0 = 1.154652540;
-    double r0 = 0.20;
+    double x0 = 1.0;
+    double r0 = 0.10;
     ;
     refine(sq(x - x0) + sq(y) < sq(1.1 * r0) && sq(x - x0) + sq(y) > sq(0.9 * r0) && level < LevelMax);
     ;
